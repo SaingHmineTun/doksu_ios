@@ -9,7 +9,7 @@ struct SongRow: View {
                 .frame(width: 38, height: 38)
 
             Text(song.numberedTitle)
-                .font(.custom(DokSuFonts.ajKunheing, size: 28))
+                .font(.custom(DokSuFonts.ajKunheing, size: 24))
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .minimumScaleFactor(0.75)

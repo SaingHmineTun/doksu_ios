@@ -13,7 +13,7 @@ struct AboutView: View {
 
                     VStack(spacing: 0) {
                         AboutRow(imageName: "ic_music", label: "သဵင်ၵႂၢမ်း : ", value: "ၵေႃလိၵ်ႈလၢႆးလႄႈ ၽိင်ႈငႄႈတႆး၊\nၸေႊဝဵင်းမူႇၸေႊ။") {
-                            openFacebookPage("103066969300092")
+                            openFacebookPage("100087937960730")
                         }
 
                         Divider().padding(.leading, 58)
@@ -27,12 +27,12 @@ struct AboutView: View {
                         Divider().padding(.leading, 58)
 
                         AboutRow(systemName: "f.circle.fill", label: "ၾဵတ်ႉပုၵ်ႉ : ", value: "ထုင်ႉမၢဝ်းၶမ်း") {
-                            openFacebookPage("529740996878692")
+                            openFacebookPage("61569069823862")
                         }
                     }
                     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal, 16)
-
+                    
                     Text("Version 1.0.0")
                         .font(.custom(DokSuFonts.namteng, size: 18))
                         .foregroundStyle(.secondary)

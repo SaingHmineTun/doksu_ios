@@ -14,6 +14,7 @@ struct DetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             toggleStrip
+                .frame(height: 60) // ADD THIS: Forces the bar to stay exactly 44pt tall
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 6)
