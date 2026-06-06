@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct doksuApp: App {
+    @StateObject private var player = DokSuPlayer()
+
+    init() {
+        DokSuFonts.register()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(player)
         }
     }
 }
