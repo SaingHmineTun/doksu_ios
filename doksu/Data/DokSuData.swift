@@ -47,7 +47,21 @@ enum DokSuData {
 
     static func lyrics(for page: Int, showingChords: Bool) -> AttributedString {
         let rawLyrics = readLyrics(page: page, showingChords: showingChords)
-        var attributed = AttributedString(rawLyrics)
+        var processedLyrics = rawLyrics
+
+        if !showingChords {
+            // Remove all chord tokens when chords are disabled
+            if let regex = try? NSRegularExpression(pattern: #"\b([A-GO](#|b|m|bm|7)?)\b"#) {
+                let range = NSRange(processedLyrics.startIndex..., in: processedLyrics)
+                processedLyrics = regex.stringByReplacingMatches(in: processedLyrics, options: [], range: range, withTemplate: "")
+            }
+            // Clean up extra spaces that might be left behind
+            processedLyrics = processedLyrics.replacingOccurrences(of: "[ \\t]+", with: " ", options: .regularExpression)
+            processedLyrics = processedLyrics.replacingOccurrences(of: " \\n", with: "\n", options: .regularExpression)
+            processedLyrics = processedLyrics.replacingOccurrences(of: "\n ", with: "\n", options: .regularExpression)
+        }
+
+        var attributed = AttributedString(processedLyrics)
         attributed.font = .custom(DokSuFonts.namteng, size: 20)
         attributed.foregroundColor = .primary
 
@@ -55,7 +69,7 @@ enum DokSuData {
             highlight(pattern: #"\b([A-GO](#|b|m|bm|7)?\s*)\b"#, in: &attributed, color: .dokSuError, font: .system(size: 20, weight: .bold))
         }
 
-        for line in rawLyrics.split(separator: "\n", omittingEmptySubsequences: false) where line.contains("-") {
+        for line in processedLyrics.split(separator: "\n", omittingEmptySubsequences: false) where line.contains("-") {
             guard let range = attributed.range(of: String(line)) else { continue }
             attributed[range].font = .custom(DokSuFonts.ajKunheing, size: 30)
             attributed[range].foregroundColor = .dokSuError
@@ -71,12 +85,40 @@ enum DokSuData {
         }
 
         let lines = content.components(separatedBy: .newlines).dropFirst()
-        let visibleLines = showingChords ? Array(lines) : lines.filter { !isChordLine($0) }
+        var visibleLines: [String] = []
+        for line in lines {
+            if !showingChords {
+                if isChordLine(line) {
+                    continue
+                }
+                let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.lowercased().hasPrefix("key") || trimmed.hasPrefix("Key") || trimmed.contains("Key -") || trimmed.lowercased().hasPrefix("beat") || trimmed.hasPrefix("Beat") || trimmed.contains("Beat -") {
+                    continue
+                }
+                // Also catch lines that are just key/beat info
+                if trimmed.range(of: #"^Key\s*-.*$"#, options: .regularExpression) != nil ||
+                   trimmed.range(of: #"^Beat\s*-.*$"#, options: .regularExpression) != nil {
+                    continue
+                }
+            }
+            visibleLines.append(line)
+        }
         return visibleLines.joined(separator: "\n") + "\n\n"
     }
 
     private static func isChordLine(_ line: String) -> Bool {
-        line.range(of: #"(\s*([A-GO](#|b|m|bm|7)?\s*)\s*)+"#, options: .regularExpression) == line.startIndex..<line.endIndex
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return false
+        }
+        guard let regex = try? NSRegularExpression(pattern: #"^(\s*([A-GO](#|b|m|bm|7)?\s*)\s*)+$"#) else {
+            return line.range(of: #"(\s*([A-GO](#|b|m|bm|7)?\s*)\s*)+"#, options: .regularExpression) == line.startIndex..<line.endIndex
+        }
+        let range = NSRange(line.startIndex..., in: line)
+        if let match = regex.firstMatch(in: line, options: [], range: range) {
+            return match.range.location == 0 && match.range.length == line.utf16.count
+        }
+        return false
     }
 
     private static func highlight(pattern: String, in attributed: inout AttributedString, color: Color, font: Font) {
